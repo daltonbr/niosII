@@ -27,4 +27,11 @@ And wait for user input. The commands will have at maximum two integers, as show
 Some things are left unsaid in this description. Problems must be solved by the team and the solution must be explained in the final report.
 As a bonus, the team must develop additional commands.
 
+## TODO
+- [X] method to calculate a triangular number (triangular.s)  
+- [ ] method to convert a given 16bit unsigned integer to its correspond in 7-display-segment     
+- [ ] decide which option is best: convert all digits at once OR one by one  
+- [ ] method or way to move and rotate the HexDisplay  
+- [ ] discuss a way to read and decide which command was assigned  
+
 For more project like this one, see our another repo https://github.com/daltonbr/micro2
