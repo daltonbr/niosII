@@ -2,10 +2,10 @@
  * Final Project for the course of Microprocessors II                            *
  * triangular.s                                                                  *
  * This is an auxiliary method to the final projetc                              *
- * Input: r4 (16 bit unsigned integer to be calculated the triangular number)    *
- *       0 ~ 65535                                                               *
- * Output: r2 (32 bit unsigned integer)                                          *
- * Version 0.1 - 2016/10/14                                                      *
+ * Input: r4 (8 bit unsigned integer to be calculated the triangular number)     *
+ *       0 ~ 255                                                                 *
+ * Output: r2 (16 bit unsigned integer) - max value x(511) = 32640               *
+ * Version 0.2 - 2016/10/17                                                      *
  * Professor: Joao Paulo L de Carvalho                                           *
  * Authors:                                                                      *
  * Dalton Lima @daltonbr                                                         *
