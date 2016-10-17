@@ -5,7 +5,7 @@
  * Input: r4 (8 bit unsigned integer to be calculated the triangular number)     *
  *       0 ~ 255                                                                 *
  * Output: r2 (16 bit unsigned integer) - max value x(511) = 32640               *
- * Version 0.2 - 2016/10/17                                                      *
+ * 2016/10/17 (not tested)                                                     *
  * Professor: Joao Paulo L de Carvalho                                           *
  * Authors:                                                                      *
  * Dalton Lima @daltonbr                                                         *

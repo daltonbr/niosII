@@ -32,6 +32,7 @@ As a bonus, the team must develop additional commands.
 - [ ] method to convert a given 16bit unsigned integer to its correspond in 7-display-segment     
 - [ ] decide which option is best: convert all digits at once OR one by one  
 - [ ] method or way to move and rotate the HexDisplay  
-- [ ] discuss a way to read and decide which command was assigned  
+- [ ] discuss a way to read and decide which command was assigned
+- [ ] method to rotate a word with a timer of 200 ms, with an option to rotate left or right. 
 
 For more project like this one, see our another repo https://github.com/daltonbr/micro2
