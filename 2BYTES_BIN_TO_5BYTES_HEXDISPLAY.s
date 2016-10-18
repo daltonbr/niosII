@@ -1,7 +1,7 @@
 /*********************************************************************************
  * Final Project for the course of Microprocessors II                            *
  * 2BYTES_BIN_TO_5BYTES_HEXDISPLAY.s                                             *
- * This is an auxiliary method to the final projetc                              *
+ * This is an auxiliary method to the final project                              *
  * Input will be 2 bytes long, as unsigned integer (0 ~ 65535)                   *
  * The OUTPUT is a 7-display-segment DECIMAL representation of that input        *
  * that will require 5 digits to be represented.                                 *
@@ -12,7 +12,7 @@
  *         __ __ __  1  3  6  9  5 (Hex-Display)                                 *
  * Input: r4                                                                     *
  * Output: r2 (4 less significant digits) r3 (most significant significant digit)*
- * 2016/10/17 (not tested)                                          *
+ * 2016/10/17 (not tested)                                                       *
  * Professor: Joao Paulo L de Carvalho                                           *
  * Authors:                                                                      *
  * Dalton Lima @daltonbr                                                         *
@@ -36,11 +36,10 @@
     addi    r12, r0, DIGIT_CODE_MAP # Pointer to the map in memory
     add     r3, r0, r0
     
-/* This method uses the integer division and the remainder, using this pattern:
+    /* This method uses the integer division and the remainder, using this pattern:
     divu rC, rA, rB # original divu operation
     mul rD, rC, rB
-    sub rD, rA, rD # rD = remainder
-*/
+    sub rD, rA, rD # rD = remainder */
 
     /* HEX4 */
     movia   r9, 10000

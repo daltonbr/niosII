@@ -28,11 +28,12 @@ Some things are left unsaid in this description. Problems must be solved by the 
 As a bonus, the team must develop additional commands.
 
 ## TODO
-- [X] method to calculate a triangular number (triangular.s)  
-- [ ] method to convert a given 16bit unsigned integer to its correspond in 7-display-segment     
-- [ ] decide which option is best: convert all digits at once OR one by one  
+- [X] method to calculate a triangular number (triangular.s)   
+- [X] method to convert a given 2 Bytes UINT into 5 decimal digits to HEXs displays (2BYTES_BIN_TO_5BYTES_HEXDISPLAY.s)       
 - [ ] method or way to move and rotate the HexDisplay  
-- [ ] discuss a way to read and decide which command was assigned
-- [ ] method to rotate a word with a timer of 200 ms, with an option to rotate left or right. 
+- [ ] method for reading the commands assigned
+- [ ] method to rotate a word with a timer of 200 ms, with an option to rotate left or right.
+- [ ] read the SW7-0 and set the correspondent red leds
+- [ ] timer for red leds working (500 ms)
 
 For more project like this one, see our another repo https://github.com/daltonbr/micro2
