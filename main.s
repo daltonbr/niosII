@@ -124,11 +124,25 @@ ZERO_ZERO_COMMAND:
 
     # TODO: check if value is valid (00~17)
 
+    addi        r12, r0, 0b1                    # r12 is a temp register
+    sll         r11, r12, r11                   # Now, r11 holds the correct bit set
     br BLINK_RED_LEDS
 
 ZERO_ONE_COMMAND:
-    # TODO
-    br RETURN_FROM_INTERRUPT
+    ldb         r10, 0(r15)
+    addi        r15, r15, 1
+    subi        r10, r10, ZERO_ASCII_VALUE
+    muli        r11, r10, 10
+
+    ldb         r10, 0(r15)
+    subi        r10, r10, ZERO_ASCII_VALUE
+    add         r11, r11, r10                   # Now, r11 holds the shift we have to make to set the right bit on the red leds
+
+    # TODO: cbeck if value is valid (00~17)
+
+    addi        r12, r0, 0b1                    # r12 is a temp register
+    sll         r11, r12, r11                   # Now, r11 holds the correct bit set
+    br CANCEL_BLINK_RED_LEDS
 
 ONE_ZERO_COMMAND:
     # TODO
@@ -143,11 +157,20 @@ TWO_ONE_COMMAND:
     br RETURN_FROM_INTERRUPT
 
 BLINK_RED_LEDS:
-    movia    r8, RED_LED_BASE_ADDRESS
-    ldwio    r10, 0(r8)                     # r10 = current value in RLED Data Register
-    or       r11, r11, r10                  # the user input need to be ORed with the current value in RLEDs                                                    
-    stwio    r11, 0(r8)                     # set the RLED Data Register
+    movia       r8, RED_LED_BASE_ADDRESS
+    ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
+    or          r11, r11, r10                  # the user input need to be ORed with the current value in RLEDs
+    stwio       r11, 0(r8)                     # set the RLED Data Register
+
+    # TODO: this is not all. We need a logic to implement the blinking mechanism
     br RETURN_FROM_INTERRUPT
+
+CANCEL_BLINK_RED_LEDS:
+    movia       r8, RED_LED_BASE_ADDRESS
+    ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
+    xor         r11, r11, 0x11111111           # Get the complement of r11
+    and         r11, r11, r10                  # the user input need to be ANDed with the current value in RLEDs
+    stwio       r11, 0(r8)                     # set the RLED Data Register
 
 RETURN_FROM_INTERRUPT:
     subi        ea, ea, 4                   # external interrupt must decrement ea, so that the 
@@ -174,9 +197,6 @@ _start:
 
     IDLE:
         br IDLE
-
-#     movia       r8, UART_BASE_ADDRESS
-#     movia       r9, TIMER_BASE_ADDRESS
 
 # /* set the interval timer period for scrolling the HEX displays */
 #     movia       r12, TIMER_INTERVAL         # 1/(50 MHz) × (0x17D7840) = 500 msec
