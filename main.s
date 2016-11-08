@@ -24,7 +24,7 @@
  * |  21	 | Stop rotation of the phrase                                                |
 *******************************************************************************************/
  
- /* base addresses */
+ # Base Addresses
 .equ RED_LED_BASE_ADDRESS,       0x10000000          # 17 - 0 less significant bits
 .equ GREEN_LED_BASE_ADDRESS,     0x10000010          #  8 - 0 less significant bits
 .equ HEX_DISPLAY30_BASE_ADDRESS, 0x10000020
@@ -35,24 +35,23 @@
 .equ TIMER_BASE_ADDRESS,         0x10002000
 .equ COMMAND_BASE_ADDRESS,       0x00015000
 .equ GREETING_PHRASE_ADDRESS,    0x00010000
-.equ ENTER_ASCII_VALUE,          0xd
-.equ ZERO_ASCII_VALUE,           0x30
 
-/* masks */
+# Masks
 .equ WSPACE_UART_mask,           0xFF00              # only high halfword (imm16)
 .equ RAVAIL_UART_mask,           0xFF00              # only high halfword (imm16)
 .equ DATA_UART_mask,             0x00FF
 .equ RVALID_UART_mask,           0b1000000000000000  # more visual than 65536 [decimal]  
 
-/* constants */
+# Constants
 .equ TIMER_INTERVAL,             0x017D7840          # 1/(50 MHz) × (0x17D7840) = 500 msec
+.equ ZERO_ASCII_VALUE,           0x30
+.equ ENTER_ASCII_VALUE,          0xd
 
-    .text                                           # executable code follows
+    .text                                                # executable code follows
+.org        0x20
+.global     INTERRUPTION_HANDLER
 
-    .org 0x20
-    .global     INTERRUPTION_HANDLER
-/* checking ipending (ctl4) to see which interruption occurred
- * and branching accordingly */
+# checking ipending (ctl4) to see which interruption occurred and branching accordingly
 INTERRUPTION_HANDLER:  
     rdctl    r13, ipending
     # andi     r14, r13, 0b100000000                  # mask for Timer interruption
@@ -62,11 +61,11 @@ INTERRUPTION_HANDLER:
     # check for anything else ? - maybe not an external interruption? 
 
 TIMER_INTERRUPT:
-/* Lets blink the red leds */
-    stwio    r10, 0(r8)                             # Writing the DATA (note: writing into this register
-    br RETURN_FROM_INTERRUPT
-                                                     # has no effect on received data)
-/* Reading the character */    
+    # Lets blink the red leds
+    stwio    r10, 0(r8)                              # Writing the DATA (note: writing into this register
+    br RETURN_FROM_INTERRUPT                         # has no effect on received data)
+
+# Reading the character
 UART_INTERRUPT:
     ldbio       r10, 0(r8)                  # r10 = DATA (1 byte)
     stb         r10, 0(r15)                 # store the read character into memory
@@ -179,15 +178,14 @@ RETURN_FROM_INTERRUPT:
 # .org GREETING_PHRASE_ADDRESS "Hi 2016"
 # .org COMMAND_BASE_ADDRESS
     
-    .global _start
+.global _start
 _start:
 
-    /* we need to take input from the user and assess the command that was entered */
     movia       r8, UART_BASE_ADDRESS
     movia       r9, TIMER_BASE_ADDRESS
     movia       r15, COMMAND_BASE_ADDRESS
 
-    /* enable Nios II processor interrupts */
+    # enable Nios II processor interrupts
     movi        r7, 0b100000000             # set interrupt mask bits for
     wrctl       ienable, r7                 # and #8 (JTAG port)
     movi        r7, 1
