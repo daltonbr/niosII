@@ -25,28 +25,28 @@
 *******************************************************************************************/
  
  /* base addresses */
-.equ RED_LED_BASE_ADDRESS,      0x10000000          # 17 - 0 less significant bits
-.equ GREEN_LED_BASE_ADDRESS,    0x10000010          #  8 - 0 less significant bits
-.equ HEX_DISPLAY30_BASE_ADDRESS 0x10000020
-.equ HEX_DISPLAY74_BASE_ADDRESS 0x10000020
-.equ SW70_BASE_ADDRESS,         0x10000040
-.equ PUSHBUTTON_BASE_ADDRESS,   0x10000050
-.equ UART_BASE_ADDRESS,         0x10001000
-.equ TIMER_BASE_ADDRESS,        0x10002000
+.equ RED_LED_BASE_ADDRESS,       0x10000000          # 17 - 0 less significant bits
+.equ GREEN_LED_BASE_ADDRESS,     0x10000010          #  8 - 0 less significant bits
+.equ HEX_DISPLAY30_BASE_ADDRESS, 0x10000020
+.equ HEX_DISPLAY74_BASE_ADDRESS, 0x10000020
+.equ SW70_BASE_ADDRESS,          0x10000040
+.equ PUSHBUTTON_BASE_ADDRESS,    0x10000050
+.equ UART_BASE_ADDRESS,          0x10001000
+.equ TIMER_BASE_ADDRESS,         0x10002000
+.equ COMMAND_BASE_ADDRESS,       0x00015000
+.equ GREETING_PHRASE_ADDRESS,    0x00010000
+.equ ENTER_ASCII_VALUE,          0xd
+.equ ZERO_ASCII_VALUE,           0x30
 
 /* masks */
-.equ WSPACE_UART_mask,          0xFF00              # only high halfword (imm16)
-.equ RAVAIL_UART_mask,          0xFF00              # only high halfword (imm16)
-.equ DATA_UART_mask,            0x00FF
-.equ RVALID_UART_mask,          0b1000000000000000  # more visual than 65536 [decimal]  
+.equ WSPACE_UART_mask,           0xFF00              # only high halfword (imm16)
+.equ RAVAIL_UART_mask,           0xFF00              # only high halfword (imm16)
+.equ DATA_UART_mask,             0x00FF
+.equ RVALID_UART_mask,           0b1000000000000000  # more visual than 65536 [decimal]  
 
 /* constants */
-.equ TIMER_INTERVAL,            0x017D7840          # 1/(50 MHz) × (0x17D7840) = 500 msec
-.equ GREETING_PHRASE,           "Hi 2016"
+.equ TIMER_INTERVAL,             0x017D7840          # 1/(50 MHz) × (0x17D7840) = 500 msec
 
-/* debugging purpose */
-.equ INPUT_RED_LEDS,            0b10                # turn on the led #1
-    
     .text                                           # executable code follows
 
     .org 0x20
@@ -55,54 +55,137 @@
  * and branching accordingly */
 INTERRUPTION_HANDLER:  
     rdctl    r13, ipending
-    andi     r14, r13, 0b100000000                  # mask for Timer interruption
-    bne      r14, r0, TIMER_INTERRUPT    
+    # andi     r14, r13, 0b100000000                  # mask for Timer interruption
+    # bne      r14, r0, TIMER_INTERRUPT    
     andi     r14, r13, 0b1                          # mask for JTAG UART interruption
     bne      r14, r0, UART_INTERRUPT
     # check for anything else ? - maybe not an external interruption? 
 
 TIMER_INTERRUPT:
-/* Let's blink the red leds */
+/* Lets blink the red leds */
     stwio    r10, 0(r8)                             # Writing the DATA (note: writing into this register
-                                                    # has no effect on received data) 
-    subi     ea, ea, 4                              # external interrupt must decrement ea, so that the 
-    eret                                            # interrupted instruction will be run after eret
+    br RETURN_FROM_INTERRUPT
+                                                     # has no effect on received data)
+/* Reading the character */    
+UART_INTERRUPT:
+    ldbio       r10, 0(r8)                  # r10 = DATA (1 byte)
+    stb         r10, 0(r15)                 # store the read character into memory
+    addi        r15, r15, 1                 # Increment the pointer for the command
+    addi        r11, r0, ENTER_ASCII_VALUE  # r11 is a temp register
+    beq         r10, r11, VALIDATE_COMMAND  # Checks for <ENTER>
+    br RETURN_FROM_INTERRUPT
+
+VALIDATE_COMMAND:
+    movia       r15, COMMAND_BASE_ADDRESS         # reset the command pointer to the base address
+    ldb         r10, 0(r15)                       # Load the first character typed
+    addi        r15, r15, 1                       # Increment the pointer
+    beq         r10, r0, ZERO_PREFIX_COMMAND      # Check for 0
+    addi        r11, r0, 1
+    beq         r10, r11, ONE_PREFIX_COMMAND      # Check for 1
+    addi        r11, r0, 2
+    beq         r10, r11, TWO_PREFIX_COMMAND      # CHeck for 2
+    movia       r15, COMMAND_BASE_ADDRESS         # Invalid command
+    br RETURN_FROM_INTERRUPT
+
+ZERO_PREFIX_COMMAND:
+    ldb         r10, 0(r15)                       # Load the second character typed
+    addi        r15, r15, 1                       # Increment the pointer
+    beq         r10, r0, ZERO_ZERO_COMMAND        # Check for 0
+    addi        r11, r0, 1
+    beq         r10, r11, ZERO_ONE_COMMAND        # Check for 1
+    movia       r15, COMMAND_BASE_ADDRESS         # Invalid command
+    br RETURN_FROM_INTERRUPT
+
+ONE_PREFIX_COMMAND:
+    ldb         r10, 0(r15)                       # Load the second character typed
+    addi        r15, r15, 1                       # Increment the pointer
+    beq         r10, r0, ONE_ZERO_COMMAND         # Check for 0
+    movia       r15, COMMAND_BASE_ADDRESS         # Invalid command
+    br RETURN_FROM_INTERRUPT    
+
+TWO_PREFIX_COMMAND:
+    ldb         r10, 0(r15)                       # Load the second character typed
+    addi        r15, r15, 1                       # Increment the pointer
+    beq         r10, r0, TWO_ZERO_COMMAND         # Check for 0
+    addi        r11, r0, 1
+    beq         r10, r11, TWO_ONE_COMMAND         # Check for 1
+    movia       r15, COMMAND_BASE_ADDRESS         # Invalid command
+    br RETURN_FROM_INTERRUPT
+
+ZERO_ZERO_COMMAND:
+    ldb         r10, 0(r15)
+    addi        r15, r15, 1
+    subi        r10, r10, ZERO_ASCII_VALUE
+    muli        r11, r10, 10
+
+    ldb         r10, 0(r15)
+    subi        r10, r10, ZERO_ASCII_VALUE
+    add         r11, r11, r10
+
+    # TODO: check if value is valid (00~17)
+
+    br BLINK_RED_LEDS
+
+ZERO_ONE_COMMAND:
+    # TODO
+    br RETURN_FROM_INTERRUPT
+
+ONE_ZERO_COMMAND:
+    # TODO
+    br RETURN_FROM_INTERRUPT
+
+TWO_ZERO_COMMAND:
+    # TODO
+    br RETURN_FROM_INTERRUPT
+
+TWO_ONE_COMMAND:
+    # TODO
+    br RETURN_FROM_INTERRUPT
+
+BLINK_RED_LEDS:
+    movia    r8, RED_LED_BASE_ADDRESS
+    ldwio    r10, 0(r8)                     # r10 = current value in RLED Data Register
+    or       r11, r11, r10                  # the user input need to be ORed with the current value in RLEDs                                                    
+    stwio    r11, 0(r8)                     # set the RLED Data Register
+    br RETURN_FROM_INTERRUPT
+
+RETURN_FROM_INTERRUPT:
+    subi        ea, ea, 4                   # external interrupt must decrement ea, so that the 
+    eret                                    # interrupted instruction will be run after eret
+
+# .org GREETING_PHRASE_ADDRESS "Hi 2016"
+# .org COMMAND_BASE_ADDRESS
     
     .global _start
 _start:
 
     /* we need to take input from the user and assess the command that was entered */
-
-/* blinkinkg the leds */
-/* turn on the requested led to blink (input from user) */
-    movia    r8, RED_LED_BASE_ADDRESS
-    ldwio    r10, 0(r8)                             # r10 = current value in RLED Data Register
-    movia    r9, INPUT_RED_LEDS                     # r9 = # led to be turned on (from user input) - hardcoded for testing purpose
-    or       r10, r10, r9                           # the user input need to be ORed with the current value in RLEDs                                                    
-    stwio    r10, 0(r8)                             # set the RLED Data Register
-
     movia       r8, UART_BASE_ADDRESS
     movia       r9, TIMER_BASE_ADDRESS
+    movia       r15, COMMAND_BASE_ADDRESS
 
-/* set the interval timer period for scrolling the HEX displays */
-    movia       r12, TIMER_INTERVAL         # 1/(50 MHz) × (0x17D7840) = 500 msec
-    sthio       r12, 8(r9)                  # store the low halfword of counter (low)...
-    srli        r12, r12, 16                # move the high halfword to the low part
-    sthio       r12, 0xC(r9)                # ...and then store it in the the counter (high)
-
-/* start interval timer, enable its interrupts and set it to reload when reach 0 */
-    movi        r13, 0b0111                 # START = 1, CONT = 1, ITO = 1
-    sthio       r13, 4(r9)
-
-/* enable Nios II processor interrupts */
-    movi        r7, 0b100000001             # set interrupt mask bits for IRQ #0 (interval
-    wrctl       ienable, r7                 # timer) and #8 (JTAG port) 
+    /* enable Nios II processor interrupts */
+    movi        r7, 0b100000000             # set interrupt mask bits for
+    wrctl       ienable, r7                 # and #8 (JTAG port)
     movi        r7, 1
     wrctl       status, r7                  # turn on Nios II interrupt processing
+
+    # TODO: print the prompt message
+
+    IDLE:
+        br IDLE
+
+#     movia       r8, UART_BASE_ADDRESS
+#     movia       r9, TIMER_BASE_ADDRESS
+
+# /* set the interval timer period for scrolling the HEX displays */
+#     movia       r12, TIMER_INTERVAL         # 1/(50 MHz) × (0x17D7840) = 500 msec
+#     sthio       r12, 8(r9)                  # store the low halfword of counter (low)...
+#     srli        r12, r12, 16                # move the high halfword to the low part
+#     sthio       r12, 0xC(r9)                # ...and then store it in the the counter (high)
+
+# /* start interval timer, enable its interrupts and set it to reload when reach 0 */
+#     movi        r13, 0b0111                 # START = 1, CONT = 1, ITO = 1
+#     sthio       r13, 4(r9)
     
-
-
-END: 
-    br END
-
 .end
