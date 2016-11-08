@@ -34,6 +34,7 @@
 .equ UART_BASE_ADDRESS,          0x10001000
 .equ TIMER_BASE_ADDRESS,         0x10002000
 .equ COMMAND_BASE_ADDRESS,       0x00015000
+.equ RED_LEDS_STATUS_ADDRESS,    0x00012000
 .equ GREETING_PHRASE_ADDRESS,    0x00010000
 
 # Masks
@@ -54,14 +55,21 @@
 # checking ipending (ctl4) to see which interruption occurred and branching accordingly
 INTERRUPTION_HANDLER:  
     rdctl    r13, ipending
-    # andi     r14, r13, 0b100000000                  # mask for Timer interruption
-    # bne      r14, r0, TIMER_INTERRUPT    
-    andi     r14, r13, 0b1                          # mask for JTAG UART interruption
+    andi     r14, r13, 0b1                          # mask for Timer interruption
+    bne      r14, r0, TIMER_INTERRUPT
+    andi     r14, r13, 0b100000000                  # mask for JTAG UART interruption
     bne      r14, r0, UART_INTERRUPT
     # check for anything else ? - maybe not an external interruption? 
 
 TIMER_INTERRUPT:
-    # Lets blink the red leds
+
+    # Here, we are assuming that the only timer interrupts are regarding the blinking of leds
+
+    movia       r13, RED_LEDS_STATUS_ADDRESS         # Get buffer of blinkable leds
+    movia       r8, RED_LED_BASE_ADDRESS
+
+    # TODO: Toggle the needed bits in the RED_LED_BASE_ADDRESS
+
     stwio    r10, 0(r8)                              # Writing the DATA (note: writing into this register
     br RETURN_FROM_INTERRUPT                         # has no effect on received data)
 
@@ -157,15 +165,30 @@ TWO_ONE_COMMAND:
 
 BLINK_RED_LEDS:
     movia       r8, RED_LED_BASE_ADDRESS
-    ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
-    or          r11, r11, r10                  # the user input need to be ORed with the current value in RLEDs
-    stwio       r11, 0(r8)                     # set the RLED Data Register
+    movia       r9, RED_LEDS_STATUS_ADDRESS
 
-    # TODO: this is not all. We need a logic to implement the blinking mechanism
+    ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
+    or          r12, r11, r10                  # the user input need to be ORed with the current value in RLEDs
+    stwio       r12, 0(r8)                     # set the RLED Data Register
+
+    ldw         r10, 0(r9)                     # r10 = current value in the status red leds memory
+    or          r12, r11, r1                   # the user input need to be ORed with the current status value
+    stw         r11, 0(r9)                     # Set the red leds status
+
     br RETURN_FROM_INTERRUPT
 
 CANCEL_BLINK_RED_LEDS:
     movia       r8, RED_LED_BASE_ADDRESS
+    movia       r9, RED_LEDS_STATUS_ADDRESS
+
+    # Reset the bit on the status buffer
+    lbw         r10, 0(r9)                     # Load current status buffer
+    xor         r12, r11, r10                  # Get the complement of user input
+    and         r12, r12, r10                  # We AND here to reset the wanted bit on the status buffer
+    stw         r12, 0(r9)                     # Store it into memory again
+
+    # Reset the bit on the red leds display
+    # TODO: check this, probably wrong
     ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
     xor         r11, r11, 0x11111111           # Get the complement of r11
     and         r11, r11, r10                  # the user input need to be ANDed with the current value in RLEDs
