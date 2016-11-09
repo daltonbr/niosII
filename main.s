@@ -69,9 +69,19 @@ TIMER_INTERRUPT:
     movia       r8, RED_LED_BASE_ADDRESS
 
     # TODO: Toggle the needed bits in the RED_LED_BASE_ADDRESS
+    ldwio       r10, 0(r8)
+    ldw         r11, 0(r13)
+    beq         r10, 0, LIGHT_ALL_NEEDED_LEDS        # If its zero, there are no leds lighted on
 
-    stwio    r10, 0(r8)                              # Writing the DATA (note: writing into this register
+    xor         r12, r11, 0x11111111                 # Get the complement of the status address
+    and         r12, r12, r10                        # We AND here to reset the wanted bits on the status buffer
+    stwio       r12, 0(r8)                           # Writing the DATA (note: writing into this register
     br RETURN_FROM_INTERRUPT                         # has no effect on received data)
+
+LIGHT_ALL_NEEDED_LEDS:
+    or          r10, r10, r13                        # Just light the needed lights
+    stwio       r10, 0(r8)                           # Save it back to red leds address
+    br RETURN_FROM_INTERRUPT
 
 # Reading the character
 UART_INTERRUPT:
@@ -182,17 +192,10 @@ CANCEL_BLINK_RED_LEDS:
     movia       r9, RED_LEDS_STATUS_ADDRESS
 
     # Reset the bit on the status buffer
-    lbw         r10, 0(r9)                     # Load current status buffer
-    xor         r12, r11, r10                  # Get the complement of user input
-    and         r12, r12, r10                  # We AND here to reset the wanted bit on the status buffer
+    lbw         r11, 0(r9)                     # Load current status buffer
+    xor         r12, r10, 0x11111111           # Get the complement of user input
+    and         r12, r12, r11                  # We AND here to reset the wanted bit on the status buffer
     stw         r12, 0(r9)                     # Store it into memory again
-
-    # Reset the bit on the red leds display
-    # TODO: check this, probably wrong
-    ldwio       r10, 0(r8)                     # r10 = current value in RLED Data Register
-    xor         r11, r11, 0x11111111           # Get the complement of r11
-    and         r11, r11, r10                  # the user input need to be ANDed with the current value in RLEDs
-    stwio       r11, 0(r8)                     # set the RLED Data Register
 
 RETURN_FROM_INTERRUPT:
     subi        ea, ea, 4                   # external interrupt must decrement ea, so that the 
