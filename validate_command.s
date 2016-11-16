@@ -1,3 +1,5 @@
+.include "constants.s"
+
 .global VALIDATE_COMMAND
 VALIDATE_COMMAND:
     addi        sp, sp, -8                        # Build the stack

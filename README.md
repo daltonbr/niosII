@@ -31,9 +31,9 @@ As a bonus, the team must develop additional commands.
 - [X] method to calculate a triangular number (triangular.s)   
 - [X] method to convert a given 2 Bytes UINT into 5 decimal digits to HEXs displays (2BYTES_BIN_TO_5BYTES_HEXDISPLAY.s)       
 - [ ] method or way to move and rotate the HexDisplay  
-- [ ] method for reading the commands assigned
+- [X] method for reading the commands assigned
 - [ ] method to rotate a word with a timer of 200 ms, with an option to rotate left or right.
-- [ ] read the SW7-0 and set the correspondent red leds
-- [ ] timer for red leds working (500 ms)
+- [X] read the SW7-0 and set the correspondent red leds
+- [X] timer for red leds working (500 ms)
 
 For more project like this one, see our another repo https://github.com/daltonbr/micro2

@@ -1,3 +1,5 @@
+.include "constants.s"
+
 # This procedure is responsible to set the selected led to be blinkable
 # In order to do this, we set the selected bit on the red led status buffer in memory.
 # This way, the next time the timer interrupts to light the leds, it will get new
