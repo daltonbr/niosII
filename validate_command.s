@@ -82,7 +82,23 @@ ZERO_ONE_COMMAND:
     br          END_VALIDATE_COMMAND
 
 ONE_ZERO_COMMAND:
-    # TODO
+
+    # get bits from switch keys
+    movia       r8, SW70_BASE_ADDRESS
+    ldb         r4, 0(r8)
+
+    # calculate triangular number
+    call        TRIANGULAR
+
+    # TODO: display in the 7-segment display
+    add         r4, r0, r2
+    call        TWO_BYTES_BIN_TO_5BYTES_HEXDISPLAY
+
+    movia       r9, HEX_DISPLAY30_BASE_ADDRESS
+    movia       r10, HEX_DISPLAY74_BASE_ADDRESS
+    stwio       r2, 0(r9)
+    stwio       r3, 0(r10)
+
     br          END_VALIDATE_COMMAND
 
 TWO_ZERO_COMMAND:

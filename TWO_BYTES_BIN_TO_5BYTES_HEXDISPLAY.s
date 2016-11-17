@@ -23,8 +23,8 @@
 .equ DIGIT_CODE_MAP, 0x20000          # base address for our table of outputs
 .equ MASK,           0xff
 
-.global 2BYTES_BIN_TO_5BYTES_HEXDISPLAY
-2BYTES_BIN_TO_5BYTES_HEXDISPLAY:
+.global TWO_BYTES_BIN_TO_5BYTES_HEXDISPLAY
+TWO_BYTES_BIN_TO_5BYTES_HEXDISPLAY:
 	
 	/* prologue */
 	addi    sp, sp, -8
@@ -35,11 +35,12 @@
     add     r8, r0, r4              # r8 will be our placeholder
     addi    r12, r0, DIGIT_CODE_MAP # Pointer to the map in memory
     add     r3, r0, r0
+    add     r2, r0, r0
     
-    /* This method uses the integer division and the remainder, using this pattern:
-    divu rC, rA, rB # original divu operation
-    mul rD, rC, rB
-    sub rD, rA, rD # rD = remainder */
+    # This method uses the integer division and the remainder, using this pattern:
+    #       divu rC, rA, rB
+    #       mul rD, rC, rB
+    #       sub rD, rA, rD # rD = remainder
 
     /* HEX4 */
     movia   r9, 10000

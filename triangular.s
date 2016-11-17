@@ -5,7 +5,7 @@
  * Input: r4 (8 bit unsigned integer to be calculated the triangular number)     *
  *       0 ~ 255                                                                 *
  * Output: r2 (16 bit unsigned integer) - max value x(511) = 32640               *
- * 2016/10/17 (not tested)                                                     *
+ * 2016/10/17 (tested with small numbers)                                                     *
  * Professor: Joao Paulo L de Carvalho                                           *
  * Authors:                                                                      *
  * Dalton Lima @daltonbr                                                         *
@@ -30,7 +30,7 @@ TRIANGULAR:
 # Confirm: MUL is implement in this version of NIOS II ?
     add     r2, r0, r4                      # r2 = n
     add     r9, r0, r4
-    addi    r9, 1                           # r9 = n+1
+    addi    r9, r9, 1                       # r9 = n+1
     mul     r2, r2, r9                      # r2 = n * (n+1) 
     addi    r9, r0, 2                       # r9 = 2
     divu    r2, r2, r9                      # r2 = n * (n+1) / 2
