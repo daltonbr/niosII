@@ -90,7 +90,7 @@ ONE_ZERO_COMMAND:
     # calculate triangular number
     call        TRIANGULAR
 
-    # TODO: display in the 7-segment display
+    # display in the 7-segment display
     add         r4, r0, r2
     call        TWO_BYTES_BIN_TO_5BYTES_HEXDISPLAY
 
@@ -102,11 +102,15 @@ ONE_ZERO_COMMAND:
     br          END_VALIDATE_COMMAND
 
 TWO_ZERO_COMMAND:
-    # TODO
+    # TODO: Put the phrase in the 7-segment display
+    # TODO: Initiate the timer
+    # TODO: Set the interrupt mask bits for KEY1 and KEY2 on the pushbutton parallel port
     br          END_VALIDATE_COMMAND
 
 TWO_ONE_COMMAND:
-    # TODO
+    # TODO: Check if phrase is actually rotating
+    # TODO: stop the timer
+    # TODO: Reset the interrupt mask bits for KEY1 and KEY2 on the pushbutton parallel port
     br          END_VALIDATE_COMMAND
 
 END_VALIDATE_COMMAND:

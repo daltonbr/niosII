@@ -41,13 +41,24 @@ INTERRUPTION_HANDLER:
 
 TIMER_INTERRUPT:
 
-    # Here, we are assuming that the only timer interrupts are regarding the blinking of leds
-
     # Set the TO flag on the timer back to 0
     ldbio       r15, 0(r17)
     andi        r15, r15, 0b11111110
     stbio       r15, 0(r17)
 
+    # To check which command triggered this timer interrupt, we use the last typed command
+    # For now, we just check the first byte:
+    #   If it is zero -> blinking mechanism of red led
+    #   if it is something else -> rotation of phrase
+
+    movia       r21, LAST_TYPED_COMMAND
+    ldb         r10, 0(r21)
+    subi        r10, r10, ZERO_ASCII_VALUE        # we want the numeric value
+    beq         r10, r0, BLINK_TIMER_INTERRUPT
+
+    # TODO: rotate the phrase on the 7-segment display
+
+BLINK_TIMER_INTERRUPT:
     # Check if there is some red led on
     ldwio       r10, 0(r20)
     ldw         r11, 0(r18)
@@ -70,8 +81,13 @@ UART_INTERRUPT:
     bne         r10, r11, RETURN_FROM_INTERRUPT      # Checks for <ENTER>
     call        VALIDATE_COMMAND
 
-    # Move the pointer back
+    # Move the pointer back, in order to get the next command
     movia       r19, COMMAND_BASE_ADDRESS
+
+    # Save the last typed command for future use, if needed
+    movia       r10, LAST_TYPED_COMMAND
+    ldw         r11, 0(r19)
+    stw         r11, 0(r10)
 
     br          RETURN_FROM_INTERRUPT
 
@@ -99,8 +115,8 @@ _start:
     stw         r0, 0(r18)                  # Reset the red leds status address
 
     # enable Nios II processor interrupts
-    movi        r7, 0b100000001             # set interrupt mask bits for
-    wrctl       ienable, r7                 # and #8 (JTAG port)
+    movi        r7, 0b100000011             # set interrupt mask bits for #0 (Interval timer),
+    wrctl       ienable, r7                 # #1 (Pushbutton switch parallel port), and #8 (JTAG port)
     movi        r7, 1
     wrctl       status, r7                  # turn on Nios II interrupt processing
 
