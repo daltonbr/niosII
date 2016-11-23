@@ -103,8 +103,28 @@ ONE_ZERO_COMMAND:
 
 TWO_ZERO_COMMAND:
     # TODO: Put the phrase in the 7-segment display
-    # TODO: Initiate the timer
-    # TODO: Set the interrupt mask bits for KEY1 and KEY2 on the pushbutton parallel port
+
+    # Set the direction of the rotation, initially to the right.
+    # Zero means right, anything else means left
+    movia       r9, ROTATION_DIRECTION_ADDRESS
+    stb         r0, 0(r9)
+
+    # set the interval timer period for the rotation
+    movia       r9, TIMER_BASE_ADDRESS
+    movia       r12, ROTATION_TIMER_INTERVAL   # 1/(50 MHz) × (0x17D7840) = 500 msec
+    sthio       r12, 8(r9)                     # store the low halfword of counter (low)...
+    srli        r12, r12, 16                   # move the high halfword to the low part
+    sthio       r12, 0xC(r9)                   # ...and then store it in the the counter (high)
+
+    # start interval timer, enable its interrupts and set it to reload when reach 0
+    movi        r12, 0b0111                    # START = 1, CONT = 1, ITO = 1
+    sthio       r12, 4(r9)
+
+    # Enable interrupts for KEY1 and KEY2
+    movia       r9, PUSHBUTTON_BASE_ADDRESS
+    addi        r12, r0, 0b110
+    stbio       r12, 8(r9)
+
     br          END_VALIDATE_COMMAND
 
 TWO_ONE_COMMAND:

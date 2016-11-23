@@ -37,7 +37,11 @@ INTERRUPTION_HANDLER:
     bne      r14, r0, TIMER_INTERRUPT
     andi     r14, r13, 0b100000000                  # mask for JTAG UART interruption
     bne      r14, r0, UART_INTERRUPT
-    # check for anything else ? - maybe not an external interruption? 
+
+    # TODO: check for a pushbutton parallel port interrupt
+    # TODO: check for anything else ? - maybe not an external interruption?
+
+    br      RETURN_FROM_INTERRUPT
 
 TIMER_INTERRUPT:
 
@@ -53,10 +57,10 @@ TIMER_INTERRUPT:
 
     movia       r21, LAST_TYPED_COMMAND
     ldb         r10, 0(r21)
-    subi        r10, r10, ZERO_ASCII_VALUE        # we want the numeric value
-    beq         r10, r0, BLINK_TIMER_INTERRUPT
-
-    # TODO: rotate the phrase on the 7-segment display
+    subi        r10, r10, ZERO_ASCII_VALUE           # we want the numeric value
+    beq         r10, r0, BLINK_TIMER_INTERRUPT       # If it is zero, it is the blinking mechanism
+    call        ROTATE_PHRASE                        # else, it is the rotation mechanism
+    br          RETURN_FROM_INTERRUPT
 
 BLINK_TIMER_INTERRUPT:
     # Check if there is some red led on
