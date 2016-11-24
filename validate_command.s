@@ -86,6 +86,7 @@ ONE_ZERO_COMMAND:
     # get bits from switch keys
     movia       r8, SW70_BASE_ADDRESS
     ldb         r4, 0(r8)
+    andi        r4, r4, 0x000000ff              # Reset all other bytes
 
     # calculate triangular number
     call        TRIANGULAR
@@ -102,7 +103,14 @@ ONE_ZERO_COMMAND:
     br          END_VALIDATE_COMMAND
 
 TWO_ZERO_COMMAND:
-    # TODO: Put the phrase in the 7-segment display
+    # Put the phrase in the 7-segment display
+    movia       r9, GREETING_PHRASE_FIRST
+    movia       r10, HEX_DISPLAY74_BASE_ADDRESS
+    stwio       r9, 0(r10)
+
+    movia       r9, GREETING_PHRASE_SECOND
+    movia       r10, HEX_DISPLAY30_BASE_ADDRESS
+    stwio       r9, 0(r10)
 
     # Set the direction of the rotation, initially to the right.
     # Zero means right, anything else means left
@@ -120,6 +128,9 @@ TWO_ZERO_COMMAND:
     movi        r12, 0b0111                    # START = 1, CONT = 1, ITO = 1
     sthio       r12, 4(r9)
 
+    movia       r9, ROTATION_STATUS_ADDRESS
+    stb         r0, 0(r9)
+
     # Enable interrupts for KEY1 and KEY2
     movia       r9, PUSHBUTTON_BASE_ADDRESS
     addi        r12, r0, 0b110
@@ -128,9 +139,30 @@ TWO_ZERO_COMMAND:
     br          END_VALIDATE_COMMAND
 
 TWO_ONE_COMMAND:
-    # TODO: Check if phrase is actually rotating
-    # TODO: stop the timer
-    # TODO: Reset the interrupt mask bits for KEY1 and KEY2 on the pushbutton parallel port
+
+    movia       r9, LAST_TYPED_COMMAND
+    ldb         r10, 0(r9)
+    subi        r10, r10, ZERO_ASCII_VALUE        # we want the numeric value
+    addi        r13, r0, 2
+    bne         r10, r13, STOP_COMMAND_END
+
+    # Just stop timer if last command was 2-indexed
+    movia       r11, TIMER_BASE_ADDRESS
+    movi        r12, 0b1011                    # STOP = 1, START = 0, CONT = 1, ITO = 1
+    sthio       r12, 4(r11)
+
+STOP_COMMAND_END:
+
+    # Disable interrupts for KEY1 and KEY2
+    movia       r9, PUSHBUTTON_BASE_ADDRESS
+    stbio       r0, 8(r9)
+
+    # Remove message from leds
+    movia       r10, HEX_DISPLAY74_BASE_ADDRESS
+    stwio       r0, 0(r10)
+    movia       r10, HEX_DISPLAY30_BASE_ADDRESS
+    stwio       r0, 0(r10)
+
     br          END_VALIDATE_COMMAND
 
 END_VALIDATE_COMMAND:

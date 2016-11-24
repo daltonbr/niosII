@@ -37,11 +37,72 @@ INTERRUPTION_HANDLER:
     bne      r14, r0, TIMER_INTERRUPT
     andi     r14, r13, 0b100000000                  # mask for JTAG UART interruption
     bne      r14, r0, UART_INTERRUPT
+    andi     r14, r13, 0b10                         # mask for Pushbutton parallel port
+    bne      r14, r0, PUSHBUTTON_INTERRUPT
 
-    # TODO: check for a pushbutton parallel port interrupt
     # TODO: check for anything else ? - maybe not an external interruption?
 
     br      RETURN_FROM_INTERRUPT
+
+PUSHBUTTON_INTERRUPT:
+
+    movia       r9, PUSHBUTTON_BASE_ADDRESS
+    ldbio       r10, 0xc(r9)
+    
+    # Reset edge capture bit
+    stbio       r0, 0xc(r9)
+
+    andi        r11, r10, 0b10
+    beq         r11, r0, KEY2_PRESS
+
+    # KEY1 was pressed
+    movia       r9, ROTATION_DIRECTION_ADDRESS
+    ldb         r11, 0(r9)
+    beq         r11, r0, CHANGE_ROTATION_TO_LEFT
+
+    # Change rotation to right
+    stb         r0, 0(r9)
+
+    br          RETURN_FROM_INTERRUPT
+
+CHANGE_ROTATION_TO_LEFT:
+
+    # Change rotation to right
+    addi        r11, r0, 0b1
+    stb         r11, 0(r9)
+
+    br          RETURN_FROM_INTERRUPT
+
+KEY2_PRESS:
+
+    # If the ROTATION_STATUS_ADDRESS is zero, we must pause the rotation
+    # if it is something other than zero, we must resume.
+
+    movia       r9, ROTATION_STATUS_ADDRESS
+    movia       r11, TIMER_BASE_ADDRESS
+    ldb         r10, 0(r9)
+
+    beq         r10, r0, PAUSE_ROTATION
+
+    movi        r12, 0b0111                    # STOP = 0, START = 1, CONT = 1, ITO = 1
+    sthio       r12, 4(r11)
+
+    # Reset rotation status as playing
+    stb         r0, 0(r9)
+
+    br          RETURN_FROM_INTERRUPT
+
+PAUSE_ROTATION:
+
+    # Stop timer
+    movi        r12, 0b1011                    # STOP = 1, START = 0, CONT = 1, ITO = 1
+    sthio       r12, 4(r11)
+
+    # Set rotation status as paused
+    addi        r14, r0, 0b1
+    stb         r14, 0(r9)
+
+    br          RETURN_FROM_INTERRUPT
 
 TIMER_INTERRUPT:
 
@@ -54,6 +115,10 @@ TIMER_INTERRUPT:
     # For now, we just check the first byte:
     #   If it is zero -> blinking mechanism of red led
     #   if it is something else -> rotation of phrase
+
+    # TODO: we need another way to check which command should run.
+    # The way it is now, when a worng command is typed, or a 
+    # stop command (21), the timer becomes unstable
 
     movia       r21, LAST_TYPED_COMMAND
     ldb         r10, 0(r21)

@@ -11,7 +11,7 @@
 .equ RED_LEDS_STATUS_ADDRESS,    0x00012000
 .equ LAST_TYPED_COMMAND,         0x0001200c
 .equ ROTATION_DIRECTION_ADDRESS, 0x00012010
-.equ GREETING_PHRASE_ADDRESS,    0x00010000
+.equ ROTATION_STATUS_ADDRESS,    0x00012014
 
 # Masks
 .equ WSPACE_UART_mask,           0xFF00              # only high halfword (imm16)
@@ -26,3 +26,5 @@
 .equ ROTATION_TIMER_INTERVAL,    0x00989680          # 1/(50 MHz) x (0x989680) = 200ms
 .equ ZERO_ASCII_VALUE,           0x30
 .equ ENTER_ASCII_VALUE,          0xa
+.equ GREETING_PHRASE_FIRST,	     0x00763000          # " HI "
+.equ GREETING_PHRASE_SECOND,     0x5b3f067d          # "2016"

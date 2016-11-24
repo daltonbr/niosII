@@ -52,8 +52,8 @@ ROTATE_RIGHT:
 
   srli        r11, r11, 8                       # rotate HEX_DISPLAY30 one byte to the right
   srli        r12, r12, 8                       # rotate HEX_DISPLAY74 one byte to the right
-  or          r11, r11, r14                     # Place saved HEX_DISPLAY_0 on HEX_DISPLAY_7
-  or          r12, r12, r15                     # Place saved HEX_DISPLAY_4 on HEX_DISPLAY_3
+  or          r11, r11, r15                     # Place saved HEX_DISPLAY_0 on HEX_DISPLAY_7
+  or          r12, r12, r14                     # Place saved HEX_DISPLAY_4 on HEX_DISPLAY_3
   br END_ROTATE_PHRASE
 
 END_ROTATE_PHRASE:
