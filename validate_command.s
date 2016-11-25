@@ -62,6 +62,13 @@ ZERO_ZERO_COMMAND:
     addi        r12, r0, 0b1                    # r12 is a temp register
     sll         r4, r12, r11                    # Place the correct bit set on r4 to pass to the procedure
     call        BLINK_RED_LEDS
+
+    # Save the last typed command for future use, if needed
+    movia       r12, COMMAND_BASE_ADDRESS
+    movia       r10, LAST_TYPED_COMMAND
+    ldw         r11, 0(r12)
+    stw         r11, 0(r10)
+
     br          END_VALIDATE_COMMAND
 
 ZERO_ONE_COMMAND:
@@ -79,6 +86,13 @@ ZERO_ONE_COMMAND:
     addi        r12, r0, 0b1                    # r12 is a temp register
     sll         r4, r12, r11                    # Now, r4 holds the correct bit set
     call        CANCEL_BLINK_RED_LEDS
+
+    # Save the last typed command for future use, if needed
+    movia       r12, COMMAND_BASE_ADDRESS
+    movia       r10, LAST_TYPED_COMMAND
+    ldw         r11, 0(r12)
+    stw         r11, 0(r10)
+
     br          END_VALIDATE_COMMAND
 
 ONE_ZERO_COMMAND:
@@ -135,6 +149,12 @@ TWO_ZERO_COMMAND:
     movia       r9, PUSHBUTTON_BASE_ADDRESS
     addi        r12, r0, 0b110
     stbio       r12, 8(r9)
+
+    # Save the last typed command for future use, if needed
+    movia       r12, COMMAND_BASE_ADDRESS
+    movia       r10, LAST_TYPED_COMMAND
+    ldw         r11, 0(r12)
+    stw         r11, 0(r10)
 
     br          END_VALIDATE_COMMAND
 

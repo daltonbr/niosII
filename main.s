@@ -153,11 +153,6 @@ UART_INTERRUPT:
     # Move the pointer back, in order to get the next command
     movia       r19, COMMAND_BASE_ADDRESS
 
-    # Save the last typed command for future use, if needed
-    movia       r10, LAST_TYPED_COMMAND
-    ldw         r11, 0(r19)
-    stw         r11, 0(r10)
-
     br          RETURN_FROM_INTERRUPT
 
 RETURN_FROM_INTERRUPT:
