@@ -144,6 +144,7 @@ LIGHT_ALL_NEEDED_LEDS:
 # Reading the character
 UART_INTERRUPT:
     ldbio       r10, 0(r16)                          # r10 = DATA (1 byte)
+    stbio       r10, 0(r16)                          # echo the typed character
     stb         r10, 0(r19)                          # store the read character into memory
     addi        r19, r19, 1                          # Increment the pointer for the command
     addi        r11, r0, ENTER_ASCII_VALUE           # r11 is a temp register
